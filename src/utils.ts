@@ -1,13 +1,22 @@
 import * as vscode from "vscode";
 
+const paths: {[key:string]: string} = { 
+  "reset.css": "media/reset.css",
+  "vscode.css": "media/vscode.css",
+  "main.css": "media/main.css",
+  "main.js": "media/main.js",
+  "cloneToDesktop.svg": "media/icons/cloneToDesktop.svg",
+  "openFolder.svg": "media/icons/openFolder.svg",
+  "openProject.svg": "media/icons/openProject.svg"
+};
+
 export const utils = {
-  getStyles(uris: vscode.Uri[]): string {
-    const styles = uris.map(uri => `<link href="${uri}" rel="stylesheet">`).join('');
-    return styles;
-  },
-  getScripts(uris: vscode.Uri[], nonce: string): string {
-    const scripts = uris.map(uri => `<script nonce="${nonce}" src="${uri}"></script>`).join('');
-    return scripts;
+  getResources(webview: vscode.Webview, uri: vscode.Uri) {
+    const ret: {[key:string]: vscode.Uri} = {};
+    Object.keys(paths).forEach((key: string) => {
+      ret[key] = webview.asWebviewUri(vscode.Uri.joinPath(uri, paths[key]));
+    });
+    return ret;
   },
   getNonce() {
     let text = "";

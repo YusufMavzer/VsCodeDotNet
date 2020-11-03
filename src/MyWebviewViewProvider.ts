@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import * as path from 'path';
 import utils from "./utils";
 
 let me: any;
@@ -32,6 +33,7 @@ export class MyWebviewViewProvider implements vscode.WebviewViewProvider {
   }
 
   private render(webview: vscode.Webview) {
+    const resources = utils.getResources(webview,this._extensionUri);
     const nonce = utils.getNonce();
     const html = `
     <!DOCTYPE html>
@@ -41,23 +43,15 @@ export class MyWebviewViewProvider implements vscode.WebviewViewProvider {
         <meta http-equiv="Content-Security-Policy" content="default-src https://bowl.azurewebsites.net; img-src https: data:; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>VS DotNet</title>
-        ${utils.getStyles(
-          [
-            webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "reset.css")),
-            webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css")),
-            webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "main.css"))
-          ]
-        )}
+        <link href="${resources["reset.css"]}" rel="stylesheet">
+        <link href="${resources["vscode.css"]}" rel="stylesheet">
+        <link href="${resources["main.css"]}" rel="stylesheet">
 			</head>
         <body class="vs-sidebar">
           <div>
             <button class="startpage">Welcome</button>
           </div>
-          ${utils.getScripts(
-            [
-              webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "main.js"))
-            ], nonce
-          )}
+          <script nonce="${nonce}" src="${resources["main.js"]}"></script>
         </body>
       </html>`;
       return html;
@@ -79,7 +73,9 @@ export class MyWebviewViewProvider implements vscode.WebviewViewProvider {
         column,
         {
           enableScripts: true,
-          localResourceRoots: [this._extensionUri],
+          localResourceRoots: [
+            this._extensionUri
+          ],
         }
       );
       panel.iconPath = vscode.Uri.joinPath(this._extensionUri, "media", "vs.svg");
@@ -89,21 +85,19 @@ export class MyWebviewViewProvider implements vscode.WebviewViewProvider {
       });
     }
     const nonce = utils.getNonce();
+    const resources = utils.getResources(panel.webview,this._extensionUri);
+
     const html = `
     <!DOCTYPE html>
     <html lang="en">
       <head>
-        <meta http-equiv="Content-Security-Policy" content="default-src https://bowl.azurewebsites.net; img-src https: data:; style-src ${panel.webview.cspSource}; script-src 'nonce-${nonce}';">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src  ${panel.webview.cspSource} file: http: https: data:; style-src ${panel.webview.cspSource}; script-src 'nonce-${nonce}';">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Welcome</title>
-        ${utils.getStyles(
-          [
-            panel.webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "reset.css")),
-            panel.webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css")),
-            panel.webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "main.css"))
-          ]
-        )}
+        <link href="${resources["reset.css"]}" rel="stylesheet">
+        <link href="${resources["vscode.css"]}" rel="stylesheet">
+        <link href="${resources["main.css"]}" rel="stylesheet">
       </head>
       <body>
         <h1>Visual Studio DotNet</h1>
@@ -115,21 +109,29 @@ export class MyWebviewViewProvider implements vscode.WebviewViewProvider {
             <h2>Get started</h2>
             <div class="sidebar">
               <div class="welcome-sidebar-btn btn-clone">  
-                <div></div>
+                <div>
+                  <img src="${resources["cloneToDesktop.svg"]}" width="48px"/>
+                </div>
                 <div>
                   <h3>Clone or check out code</h3>
-                  <p>Get code from an online git repository</p>
+                  <p>
+                    Get code from an online git repository
+                  </p>
                 </div>
               </div>
               <div class="welcome-sidebar-btn btn-open-proj">
-                <div></div>
+                <div>
+                  <img src="${resources["openProject.svg"]}" width="48px"/>
+                </div>
                 <div>
                   <h3>Open a project or solution</h3>
                   <p>Open a local Visual Studio project or .sln file</p>
                 </div>
               </div>
               <div class="welcome-sidebar-btn btn-open-dir">
-                <div></div>
+                <div>
+                  <img src="${resources["openFolder.svg"]}" width="48px"/>
+                </div>
                 <div>
                   <h3>Open a local folder</h3>
                   <p>Navigate and edit code within any folder</p>
@@ -145,11 +147,7 @@ export class MyWebviewViewProvider implements vscode.WebviewViewProvider {
             </div>
           </div>
         </div>
-        ${utils.getScripts(
-          [
-            panel.webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "main.js"))
-          ], nonce
-        )}
+        <script nonce="${nonce}" src="${resources["main.js"]}"></script>
       </body>
     </html>`;
 
